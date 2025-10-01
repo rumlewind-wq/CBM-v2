@@ -1,0 +1,539 @@
+Game:,"Rumle - Assignment 5"
+Game mode:,autosim
+Last quarter simulated:,1
+
+Market:,Market 1
+Total number of markets:,1
+Total banks in market:,1
+
+Total number of banks:,1
+Bank:,"Bank 1"
+
+
+,Q0,Q1
+
+"ECONOMIC ENVIRONMENT REPORT"
+"CAPITAL REQUIREMENTS"
+"Minimum Tier I Capital to Risk Assets",4,4
+"Minimum Tier I + Tier II Capital to Risk Assets",8,8
+"Minimum Tier I Capital to Total Assets",3,3
+"DEPOSIT RESTRICTIONS"
+"Retail Demand Deposits"
+"Reserve Requirement",10,10
+"Interest Rate Ceiling",0,0
+"Corporate Demand Deposits"
+"Reserve Requirement",10,10
+"Interest Rate Ceiling",0,0
+"Savings Deposits"
+"Reserve Requirement",0,0
+"Interest Rate Ceiling",9900,9900
+"Savings Certificates (CDs)"
+"Reserve Requirement",0,0
+"Interest Rate Ceiling",-9900,-9900
+"Long-term Time Deposits"
+"Reserve Requirement",0,0
+"Interest Rate Ceiling",-9900,-9900
+"Wholesale Deposits"
+"Reserve Requirement",0,0
+"ASSET RISK WEIGHTS"
+"Required Reserves",0,0
+"Excess Reserves",0,0
+"Interbank Lending (CIBOR)",20,20
+"Business Loans - Fixed-Rate",100,100
+"Business Loans - Floating-Rate",100,100
+"Consumer Loans",100,100
+"Mortgages",50,50
+"Government Bonds",0,0
+"Fixed Assets",100,100
+"OTHER RATES"
+"Annualized DGS Premium (% of insured deposits)",0.28,0.28
+"Annualized Penalty Premium on Discount Window Advances",1.25,1.25
+"Percentage of Nonperforming Loans in Loan Loss Allowance",100,100
+"Corporate Income Tax Rate",35,35
+"Long-Term Capital Gains Tax Rate",35,35
+"Minimum Holding Period for Long-term Capital Gains",0,0
+"SIMULATION"
+"Simulator Version",,${version_major}.${version_minor}.${version_micro}.14
+
+"BOND MARKET REPORT"
+"Gross Domestic Product (DKK billions)",4232,4276.7534
+"Floating-rate Loan Base",4.23,4.23
+"Market Price (T)",1000,1000
+"Coupon Amount (T+1)",62.3,62.3
+"Market Price (T+1)",1004.94,1004.94
+"Market Yield (T+1)",4.23,4.23
+"Coupon Amount (T+2)",62.3,62.3
+"Market Price (T+2)",1006.87,1006.87
+"Market Yield (T+2)",4.83,4.83
+"Coupon Amount (T+3)",62.3,62.3
+"Market Price (T+3)",1008.77,1008.77
+"Market Yield (T+3)",5.029999999999999,5.029999999999999
+"Coupon Amount (T+4)",62.3,62.3
+"Market Price (T+4)",1009.68,1009.68
+"Market Yield (T+4)",5.23,5.23
+"Coupon Amount (T+5)",62.3,62.3
+"Market Price (T+5)",1009,1009
+"Market Yield (T+5)",5.48,5.48
+"Coupon Amount (T+6)",62.3,62.3
+"Market Price (T+6)",1007.13,1007.13
+"Market Yield (T+6)",5.73,5.73
+"Coupon Amount (T+7)",62.3,62.3
+"Market Price (T+7)",1004.12,1004.12
+"Market Yield (T+7)",5.98,5.98
+"Coupon Amount (T+8)",62.3,62.3
+"Market Price (T+8)",1000,1000
+"Market Yield (T+8)",6.23,6.23
+
+"PERFORMANCE REPORT"
+Bank 1
+Bank name,"Bank 1","Bank 1"
+Number,1,1
+Market,"Market 1","Market 1"
+Market Value,108346.327042,96886.5873009
+Recapitalizations: Full / Partial,0,0
+Cumulative Dividends,0,0
+Price per Share,110.339948984,108.346327042
+Current Net Income,2392.75156842,1618.64651474
+
+"REGIONAL INTEREST RATE REPORT"
+Bank 1
+Bank name,"Bank 1","Bank 1"
+Business Loans - Fixed-Rate,9.3,9
+Business Loans - Floating-Rate,4,3.7
+Consumer Loans,11,10.7
+Mortgage Loans,9,8.7
+Retail Demand Deposits,0,0
+Corporate Demand Deposits,0,0
+Savings Deposits,5,6
+Savings Certificates (CDs),6,7
+Long-term Time Deposits,7.5,8.5
+
+"MARKET AVERAGE BALANCE SHEET"
+"ASSETS"
+"Required Reserves",19699.056541,19224.2911866
+"Excess Reserves",0,1618.64651474
+"Interbank Lending (at CIBOR)",0,0
+"Interbank Lending (CIBOR)",4.23,4.23
+"Business Loans - Fixed-Rate",186385.17284,210925.10561
+"Business Loans - Fixed-Rate (Rate)",9.3,9
+"Business Loans - Floating-Rate, maturing start of:"
+"T+1",121945.007583,129005.880323
+"T+1 (rate)",4,4
+"T+2",129005.880323,145280.809136
+"T+2 (rate)",4,3.7
+"Consumer Loans, maturing start of:"
+"T+1",55248.1095921,55915.170452
+"T+1 (rate)",11,11
+"T+2",55915.170452,49567.5911771
+"T+2 (rate)",11,11
+"T+3",49567.5911771,55671.6036701
+"T+3 (rate)",11,11
+"T+4",55671.6036701,63752.3110385
+"T+4 (rate)",11,10.7
+"Mortgage Loans, maturing start of:"
+"T+1",28587.0676747,26809.531207
+"T+1 (rate)",9,9
+"T+2",26809.531207,28051.5506064
+"T+2 (rate)",9,9
+"T+3",28051.5506064,28887.7308619
+"T+3 (rate)",9,9
+"T+4",28887.7308619,21510.5118755
+"T+4 (rate)",9,9
+"T+5",21510.5118755,26171.0213168
+"T+5 (rate)",9,9
+"T+6",26171.0213168,29772.7272147
+"T+6 (rate)",9,9
+"T+7",29772.7272147,26235.4647308
+"T+7 (rate)",9,9
+"T+8",26235.4647308,30881.6269905
+"T+8 (rate)",9,8.7
+"Government Bonds, maturing start of:"
+"T+1",15000,15000
+"T+2",15000,15000
+"T+3",15000,15000
+"T+4",15000,15000
+"T+5",15000,15000
+"T+6",15000,15000
+"T+7",15000,15000
+"T+8",15000,15000
+"Fixed Assets",14739,14370.525
+"Loan Loss Allowance",3731.61593816,4161.86011869
+"TOTAL ASSETS",1020470.58173,1079490.23879
+"LIABILITIES"
+"Interbank Borrowing",25000,100000
+"Interbank Borrowing (rate)",4.23,4.23
+"Demand Deposits"
+"Retail",97796.8522233,93367.5738462
+"Retail (rate)",0,0
+"Corporate",99193.7131869,98875.33802
+"Corporate (rate)",0,0
+"Wholesale Deposits, maturing start of:"
+"T+1",33000,33000
+"T+1 (rate)",5.23,5.23
+"T+2",33000,33000
+"T+2 (rate)",5.23,5.23
+"T+3",33000,33000
+"T+3 (rate)",5.23,5.23
+"T+4",33000,50000
+"T+4 (rate)",5.23,5.23
+"Savings Deposits",121504.769413,133669.056026
+"Savings Deposits (rate)",5,6
+"Savings Certificates (CDs), maturing start of:"
+"T+1",100195.2595,102359.656758
+"T+1 (rate)",6,6
+"T+2",102359.656758,117574.510208
+"T+2 (rate)",6,7
+"Long-term Time Deposits, maturing start of:"
+"T+1",23133.4271604,22296.1825128
+"T+1 (rate)",7.5,7.5
+"T+2",22296.1825128,20762.150126
+"T+2 (rate)",7.5,7.5
+"T+3",20762.150126,21201.3282554
+"T+3 (rate)",7.5,7.5
+"T+4",21201.3282554,21324.0537193
+"T+4 (rate)",7.5,7.5
+"T+5",21324.0537193,21457.2047318
+"T+5 (rate)",7.5,7.5
+"T+6",21457.2047318,21802.5867221
+"T+6 (rate)",7.5,7.5
+"T+7",21802.5867221,22419.2696878
+"T+7 (rate)",7.5,7.5
+"T+8",22419.2696878,27876.3452241
+"T+8 (rate)",7.5,8.5
+"Discount Window Advances",76754.4077302,12616.6164405
+"Discount Window Advances (rate)",9.23,9.23
+"EQUITY CAPITAL"
+"Net Worth and Retained Earnings",91269.72,92888.3665147
+"TOTAL LIABILITIES AND NET WORTH",1020470.58173,1079490.23879
+
+"BANK BALANCE SHEET"
+"ASSETS"
+"Required Reserves",19699.056541,19224.2911866
+"Excess Reserves",0,1618.64651474
+"Interbank Lending (at CIBOR)",0,0
+"Interbank Lending (CIBOR)",4.23,4.23
+"Business Loans - Fixed-Rate",186385.17284,210925.10561
+"Business Loans - Fixed-Rate (Rate)",9.3,9
+"Business Loans - Floating-Rate, maturing start of:"
+"T+1",121945.007583,129005.880323
+"T+1 (rate)",4,4
+"T+2",129005.880323,145280.809136
+"T+2 (rate)",4,3.7
+"Consumer Loans, maturing start of:"
+"T+1",55248.1095921,55915.170452
+"T+1 (rate)",11,11
+"T+2",55915.170452,49567.5911771
+"T+2 (rate)",11,11
+"T+3",49567.5911771,55671.6036701
+"T+3 (rate)",11,11
+"T+4",55671.6036701,63752.3110385
+"T+4 (rate)",11,10.7
+"Mortgage Loans, maturing start of:"
+"T+1",28587.0676747,26809.531207
+"T+1 (rate)",9,9
+"T+2",26809.531207,28051.5506064
+"T+2 (rate)",9,9
+"T+3",28051.5506064,28887.7308619
+"T+3 (rate)",9,9
+"T+4",28887.7308619,21510.5118755
+"T+4 (rate)",9,9
+"T+5",21510.5118755,26171.0213168
+"T+5 (rate)",9,9
+"T+6",26171.0213168,29772.7272147
+"T+6 (rate)",9,9
+"T+7",29772.7272147,26235.4647308
+"T+7 (rate)",9,9
+"T+8",26235.4647308,30881.6269905
+"T+8 (rate)",9,8.7
+"Government Bonds, maturing start of:"
+"T+1",15000,15000
+"T+2",15000,15000
+"T+3",15000,15000
+"T+4",15000,15000
+"T+5",15000,15000
+"T+6",15000,15000
+"T+7",15000,15000
+"T+8",15000,15000
+"Fixed Assets",14739,14370.525
+"Loan Loss Allowance",3731.61593816,4161.86011869
+"TOTAL ASSETS",1020470.58173,1079490.23879
+"LIABILITIES"
+"Interbank Borrowing",25000,100000
+"Interbank Borrowing (rate)",4.23,4.23
+"Demand Deposits"
+"Retail",97796.8522233,93367.5738462
+"Retail (rate)",0,0
+"Corporate",99193.7131869,98875.33802
+"Corporate (rate)",0,0
+"Wholesale Deposits, maturing start of:"
+"T+1",33000,33000
+"T+1 (rate)",5.23,5.23
+"T+2",33000,33000
+"T+2 (rate)",5.23,5.23
+"T+3",33000,33000
+"T+3 (rate)",5.23,5.23
+"T+4",33000,50000
+"T+4 (rate)",5.23,5.23
+"Savings Deposits",121504.769413,133669.056026
+"Savings Deposits (rate)",5,6
+"Savings Certificates (CDs), maturing start of:"
+"T+1",100195.2595,102359.656758
+"T+1 (rate)",6,6
+"T+2",102359.656758,117574.510208
+"T+2 (rate)",6,7
+"Long-term Time Deposits, maturing start of:"
+"T+1",23133.4271604,22296.1825128
+"T+1 (rate)",7.5,7.5
+"T+2",22296.1825128,20762.150126
+"T+2 (rate)",7.5,7.5
+"T+3",20762.150126,21201.3282554
+"T+3 (rate)",7.5,7.5
+"T+4",21201.3282554,21324.0537193
+"T+4 (rate)",7.5,7.5
+"T+5",21324.0537193,21457.2047318
+"T+5 (rate)",7.5,7.5
+"T+6",21457.2047318,21802.5867221
+"T+6 (rate)",7.5,7.5
+"T+7",21802.5867221,22419.2696878
+"T+7 (rate)",7.5,7.5
+"T+8",22419.2696878,27876.3452241
+"T+8 (rate)",7.5,8.5
+"Discount Window Advances",76754.4077302,12616.6164405
+"Discount Window Advances (rate)",9.23,9.23
+"EQUITY CAPITAL"
+"Net Worth and Retained Earnings",91269.72,92888.3665147
+"TOTAL LIABILITIES AND NET WORTH",1020470.58173,1079490.23879
+
+"SUMMARY BALANCE SHEET"
+"ASSETS"
+"Required Reserves (at the Danmarks Nationalbank)",19699.056541,19224.2911866
+"Excess Reserve Balances",0,1618.64651474
+"Interbank Lending (at CIBOR)",0,0
+"Business Loans - Fixed-Rate",186385.17284,210925.10561
+"Business Loans - Floating-Rate",250950.887906,274286.689459
+"Consumer Loans",216402.474891,224906.676338
+"Mortgages",216025.605488,218320.164804
+"Government Bonds",120000,120000
+"Fixed Assets",14739,14370.525
+"Loan Loss Allowance",3731.61593816,4161.86011869
+"TOTAL ASSETS",1020470.58173,1079490.23879
+"LIABILITIES"
+"Interbank Borrowing",25000,100000
+"Retail Demand Deposits",97796.8522233,93367.5738462
+"Corporate Demand Deposits",99193.7131869,98875.33802
+"Wholesale Deposits",132000,149000
+"Savings Deposits",121504.769413,133669.056026
+"Savings Certificates (CDs)",202554.916258,219934.166966
+"Long-term Time Deposits",174396.202916,179139.120979
+"Discount Window Advances",76754.4077302,12616.6164405
+"Net Worth and Retained Earnings",91269.72,92888.3665147
+"TOTAL LIABILITIES AND NET WORTH",1020470.58173,1079490.23879
+
+"INCOME AND EXPENSE REPORT"
+"CURRENT REVENUE"
+"Fee Income"
+"Retail Demand Deposits",488.984261116,466.837869231
+"Corporate Demand Deposits",297.581139561,296.62601406
+"Interest Income"
+"Business Loans - Fixed-Rate",4327.16482505,4737.26425331
+"Business Loans - Floating-Rate",5145.85415189,5515.61964388
+"Consumer Loans",5885.74674958,6066.2906045
+"Mortgages",4855.24096017,4883.40002264
+"Government Bonds",1869,1869
+"Interbank Lending (at CIBOR)",0,0
+"Realized (Short-term) Gain/Loss on Bonds",0,0
+"TOTAL REVENUE",22869.5720874,23835.0384076
+"CURRENT EXPENSES"
+"Interbank Borrowing",264.375,1057.5
+"Corporate Demand Deposits",0,0
+"Retail Demand Deposits",0,0
+"Wholesale Deposits",1725.9,1948.175
+"Savings Deposits",1518.80961767,2005.03584039
+"Savings Certificates (CDs)",3038.32374387,3592.94878002
+"Long-term Time Deposits",3269.92880467,3428.54938142
+"Discount Window Advances",1771.10795837,291.128424364
+"Provision for Loan Losses",1080.48530821,1239.14785014
+"Advertising"
+"Consumer Loans",130,130
+"Mortgages",60,60
+"Retail Demand Deposits",380,380
+"Corporate Demand Deposits",610,610
+"Savings Certificates (CDs)",250,250
+"Savings Deposits",290,290
+"Long-term Time Deposits",50,50
+"Other Non-interest Operating Costs"
+"DGS Deposit Insurance Premium",579.212517798,611.789679086
+"Interbank Borrowing and Lending",27.5,110
+"Business Loans - Fixed-Rate",465.9629321,650.012427872
+"Business Loans - Floating-Rate",656.731964677,802.395731414
+"Consumer Loans",819.364205579,881.028246037
+"Mortgages",671.241337373,700.208546961
+"Government Bonds",30,30
+"Retail Demand Deposits",522.637916016,466.837869231
+"Corporate Demand Deposits",310.69479899,296.62601406
+"DD Costs Offset by Excess Reserves",0,54.9703086313
+"Wholesale Deposits",36.3,55
+"Savings Deposits",321.279174476,394.994073128
+"Savings Certificates (CDs)",101.277458129,196.863337025
+"Long-term Time Deposits",87.1981014578,113.284150808
+"Premises and Fixed Assets",0,743.475
+"Other Transaction Costs",120.084988869,14.7829570028
+"Restructuring Charges",0,0
+"TOTAL EXPENSES",19188.4158283,21344.8130003
+"NET CURRENT OPERATING EARNINGS",3681.15625911,2490.22540729
+"Taxes on Current Earnings",1288.40469069,871.578892553
+"Realized (Long-term) Capital Gains",0,0
+"Taxes Applicable to Capital Gains",0,0
+"Total Taxes",1288.40469069,871.578892553
+"TOTAL NET INCOME",2392.75156842,1618.64651474
+
+"CAPITALIZATION REPORT"
+"Price Per Share: Current quarter",108.346327042,96.8865873009
+"Price Per Share: Prior quarter",110.339948984,108.346327042
+"Market Value of Equity: Current quarter",108346.327042,96886.5873009
+"Prior quarter",111388.622979,110339.948984
+"Book Value of Equity: Current quarter",91269.72,92888.3665147
+"Prior quarter",91269.72,91269.72
+"Number of Shares Outstanding: Current quarter",1000000,1000000
+"Prior quarter",1000000,1000000
+"Number of Shares Sold by Management: Current quarter",0,0
+"Prior quarter",0,0
+"Price of Shares Sold by Management: Current quarter",0,0
+"Prior quarter",0,0
+"Number of Shares Sold by Regulators: Current quarter",0,0
+"Prior quarter",0,0
+"Price of Shares Sold by Regulators: Current quarter",0,0
+"Prior quarter",0,0
+"Dividends Paid: Current quarter",0,0
+"Prior quarter",0,0
+"Net Total Assets: Current quarter",1020470.58173,1079490.23879
+"Prior quarter",1008415.49771,1020470.58173
+"Risk-weighted Assets: Current quarter",776490.338381,833649.078808
+"Prior quarter",765026.290864,776490.338381
+"Basel Tier I Ratio: Current quarter",11.7541346606,11.1423821937
+"Prior quarter",11.9302723436,11.7541346606
+"Basel Tier I+II Ratio: Current quarter",12.234709338,11.6416162508
+"Prior quarter",12.3711798777,12.234709338
+"Capital/Asset Ratio: Current quarter",8.94388546169,8.60483616958
+"Prior quarter",9.05080497152,8.94388546169
+
+"LOAN PERFORMANCE REPORT"
+"Business Loans - Fixed-Rate"
+"Matured Last Quarter (DKK 1,000s)",188092.020306,186385.17284
+"Defaulted (DKK 1,000s)",156.401092062,197.006258385
+"Percent Defaulted",0.0831513701687,0.10569846055
+"Percent Nonperforming",0.145159995617,0.180171859461
+"Nonperforming (DKK 1,000s)",270.556708724,380.027684848
+"Business Loans - Floating-Rate"
+"Matured Last Quarter (DKK 1,000s)",123134.93134,121945.007583
+"Defaulted (DKK 1,000s)",257.070746781,208.688140497
+"Percent Defaulted",0.208771584134,0.171132992349
+"Percent Nonperforming",0.33816198313,0.340596348723
+"Nonperforming (DKK 1,000s)",848.620499225,934.210449332
+"Consumer Loans"
+"Matured Last Quarter (DKK 1,000s)",48385.9052707,55248.1095921
+"Defaulted (DKK 1,000s)",291.877152176,385.237792263
+"Percent Defaulted",0.603227635285,0.697286830458
+"Percent Nonperforming",1.09764010891,1.15410434901
+"Nonperforming (DKK 1,000s)",2375.32036108,2595.65773283
+"Mortgage Loans"
+"Matured Last Quarter (DKK 1,000s)",26206.9695291,28587.0676747
+"Defaulted (DKK 1,000s)",16.5789335083,17.9714784671
+"Percent Defaulted",0.0632615438038,0.0628657638886
+"Percent Nonperforming",0.109764010891,0.115410434901
+"Nonperforming (DKK 1,000s)",237.118369134,251.964251677
+"TOTAL"
+"TOTAL Matured Last Quarter (DKK 1,000s)",385819.826446,392165.35769
+"TOTAL Defaulted (DKK 1,000s)",721.927924528,808.903669612
+"TOTAL Nonperforming (DKK 1,000s)",3731.61593816,4161.86011869
+
+"BOND PORTFOLIO REPORT"
+"Book Value of Portfolio",120000,120000
+"Market Value of Portfolio",120757.63,120757.63
+"Maturity (start of):",
+"Quarter T+1",
+"Market Price (T)",1000,1000
+"Bank Holdings",15000,15000
+"Quarter T+2",
+"Coupon Amount (T+1)",62.3,62.3
+"Market Price (T+1)",1004.94,1004.94
+"Market Yield (T+1)",4.23,4.23
+"Bank Holdings",15000,15000
+"Quarter T+3",
+"Coupon Amount (T+2)",62.3,62.3
+"Market Price (T+2)",1006.87,1006.87
+"Market Yield (T+2)",4.83,4.83
+"Bank Holdings",15000,15000
+"Quarter T+4",
+"Coupon Amount (T+3)",62.3,62.3
+"Market Price (T+3)",1008.77,1008.77
+"Market Yield (T+3)",5.029999999999999,5.029999999999999
+"Bank Holdings",15000,15000
+"Quarter T+5",
+"Coupon Amount (T+4)",62.3,62.3
+"Market Price (T+4)",1009.68,1009.68
+"Market Yield (T+4)",5.23,5.23
+"Bank Holdings",15000,15000
+"Quarter T+6",
+"Coupon Amount (T+5)",62.3,62.3
+"Market Price (T+5)",1009,1009
+"Market Yield (T+5)",5.48,5.48
+"Bank Holdings",15000,15000
+"Quarter T+7",
+"Coupon Amount (T+6)",62.3,62.3
+"Market Price (T+6)",1007.13,1007.13
+"Market Yield (T+6)",5.73,5.73
+"Bank Holdings",15000,15000
+"Quarter T+8",
+"Coupon Amount (T+7)",62.3,62.3
+"Market Price (T+7)",1004.12,1004.12
+"Market Yield (T+7)",5.98,5.98
+"Bank Holdings",15000,15000
+"Quarter T+9",
+"Coupon Amount (T+8)",62.3,62.3
+"Market Price (T+8)",1000,1000
+"Market Yield (T+8)",6.23,6.23
+
+"DECISIONS"
+"Quantities"
+"Initial Reserve Allocation",0,25000
+"Interbank Lending (at CIBOR)",0,0
+"Interbank Borrowing",25000,100000
+"90-day Wholesale Deposits to Issue",0,0
+"180-day Wholesale Deposits to Issue",0,0
+"360-day Wholesale Deposits to Issue",33000,50000
+"New 8-quarter Government Bonds to Purchase",15000,15000
+"Government Bonds to Sell, due start of T+2",0,0
+"Government Bonds to Sell, due start of T+3",0,0
+"Government Bonds to Sell, due start of T+4",0,0
+"Government Bonds to Sell, due start of T+5",0,0
+"Government Bonds to Sell, due start of T+6",0,0
+"Government Bonds to Sell, due start of T+7",0,0
+"Government Bonds to Sell, due start of T+8",0,0
+"Rates"
+"Business Loans - Fixed-Rate",9.3,9
+"Business Loans - Floating-Rate Spread",4,3.7
+"Consumer",11,10.7
+"Mortgage Loans",9,8.7
+"Savings Certificates (CDs)",6,7
+"Savings Deposits",5,6
+"Long-term Time Deposits",7.5,8.5
+"Retail Demand Deposits",0,0
+"Corporate Demand Deposits",0,0
+"Advertising"
+"Consumer Loans",130,130
+"Mortgage Loans",60,60
+"Retail Demand Deposits",380,380
+"Corporate Demand Deposits",610,610
+"Savings Certificates (CDs)",250,250
+"Savings Deposits",290,290
+"Long-term Time Deposits",50,50
+"Other Miscellaneous Decisions"
+"Number of Shares to Sell",0,0
+"Provision for Loan Losses",1,500
+"Corporate Loan Standard, Fixed Rate",0,0
+"Corporate Loan Standard, Floating-rate",0,0
+"Total Dividends",0,0
+"Percent of Cost Charged to Retail DD",100,100
+"Percent of Cost Charged to Corporate DD",100,100
+
