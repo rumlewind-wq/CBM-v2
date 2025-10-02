@@ -5,20 +5,20 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
   context <- "pb_overview_table_core"
   pb_helper_require_packages(c("dplyr", "tidyr", "tibble", "stringr"), context)
   pb_helper_prepare_all_long(res, context = sprintf("%s: datagrundlag", context))
-  
+
   side_key <- pb_helper_norm(side)
   side_key <- if (length(side_key)) side_key[[1]] else ""
   if (!side_key %in% c("both", "asset", "funding")) {
     stop("Parameteren 'side' skal være 'both', 'asset' eller 'funding'.", call. = FALSE)
   }
-  
-  # --- Resolve selected quarter; enforce single-quarter view ---
+
   quarters_all <- pb_quarters(res)
   q_sel_vec <- pb_helper_select_quarters(quarters_all, q, context = sprintf("%s: kvartalsvalg", context))
-  if (!length(q_sel_vec)) stop("Kvartalet findes ikke i data.", call. = FALSE)
-  # If multiple returned (e.g., "all"), restrict to latest to avoid cartesian joins in overview
-  q_sel <- tail(q_sel_vec, 1)
-  
+  if (!length(q_sel_vec)) {
+    stop("Kvartalet findes ikke i data.", call. = FALSE)
+  }
+  q_sel <- unique(q_sel_vec)
+
   empty_component <- pb_helper_empty_result()
   empty_final <- tibble::tibble(
     Quarter = character(),
@@ -179,90 +179,158 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
     out
   }
   
-  components <- list(
-    # rate accepts q
-    get_component(function() pb_comp_rate(res, q = q_sel), "rate", NULL, q_sel),
-    # oper often returns all quarters → post-filter via get_component(q_sel=…)
-    get_component(function() pb_comp_oper2(res), "oper", NULL, q_sel),
-    # adv often returns all quarters → post-filter
-    get_component(function() pb_comp_adv_yaml(res), "adv", NULL, q_sel),
-    # fee often returns all quarters → post-filter; only funding side matters
-    get_component(function() pb_fee_income(res), "fee", "funding", q_sel),
-    # dgs accepts q
-    get_component(function() pb_comp_dgs_premium(res, q = q_sel), "dgs", "funding", q_sel),
-    # rr accepts q
-    get_component(function() pb_comp_rr(res, q = q_sel), "rr", "funding", q_sel),
-    # default accepts q
-    get_component(function() pb_asset_default_rates(res, q = q_sel), "default", "asset", q_sel)
+  asset_product_order <- c(
+    "Consumer Loans",
+    "Fixed-Rate Corporate Loans",
+    "Floating-Rate Corporate Loans",
+    "Government Bonds",
+    "Interbank Lending",
+    "Mortgage Loans"
   )
-  
+  funding_product_order <- c(
+    "Interbank Borrowing",
+    "Corporate Demand Deposits",
+    "Retail Demand Deposits",
+    "Savings Deposits",
+    "Savings Certificates (CDs)",
+    "Long-Term Time Deposits",
+    "Wholesale Deposits",
+    "Discount Window Advances"
+  )
+
+  make_term_block <- function(product, maturities, side, order_vec) {
+    tibble::tibble(
+      Side = side,
+      Product = product,
+      Maturity = maturities,
+      product_order = match(product, order_vec),
+      maturity_order = dplyr::if_else(
+        maturities == "no-maturity",
+        0L,
+        suppressWarnings(as.integer(stringr::str_extract(maturities, "[0-9]+")))
+      )
+    )
+  }
+
+  asset_terms <- dplyr::bind_rows(
+    make_term_block(rep("Consumer Loans", 4), paste0(seq_len(4), "-quarter"), "asset", asset_product_order),
+    make_term_block("Fixed-Rate Corporate Loans", "1-quarter", "asset", asset_product_order),
+    make_term_block(rep("Floating-Rate Corporate Loans", 2), paste0(seq_len(2), "-quarter"), "asset", asset_product_order),
+    make_term_block(rep("Government Bonds", 8), paste0(seq_len(8), "-quarter"), "asset", asset_product_order),
+    make_term_block("Interbank Lending", "1-quarter", "asset", asset_product_order),
+    make_term_block(rep("Mortgage Loans", 8), paste0(seq_len(8), "-quarter"), "asset", asset_product_order)
+  )
+
+  funding_terms <- dplyr::bind_rows(
+    make_term_block("Interbank Borrowing", "no-maturity", "funding", funding_product_order),
+    make_term_block("Corporate Demand Deposits", "no-maturity", "funding", funding_product_order),
+    make_term_block("Retail Demand Deposits", "no-maturity", "funding", funding_product_order),
+    make_term_block("Savings Deposits", "no-maturity", "funding", funding_product_order),
+    make_term_block(rep("Savings Certificates (CDs)", 2), paste0(seq_len(2), "-quarter"), "funding", funding_product_order),
+    make_term_block(rep("Long-Term Time Deposits", 8), paste0(seq_len(8), "-quarter"), "funding", funding_product_order),
+    make_term_block(rep("Wholesale Deposits", 4), paste0(seq_len(4), "-quarter"), "funding", funding_product_order),
+    make_term_block("Discount Window Advances", "no-maturity", "funding", funding_product_order)
+  )
+
+  term_spec <- dplyr::bind_rows(asset_terms, funding_terms) |>
+    dplyr::mutate(Type = dplyr::if_else(Side == "asset", "Assets", "Funding"))
+
+  skeleton_terms <- tidyr::crossing(
+    tibble::tibble(Quarter = pb_helper_chr(q_sel)),
+    term_spec
+  )
+
+  if (identical(side_key, "asset")) {
+    skeleton_terms <- dplyr::filter(skeleton_terms, Side == "asset")
+  } else if (identical(side_key, "funding")) {
+    skeleton_terms <- dplyr::filter(skeleton_terms, Side == "funding")
+  }
+
+  if (!nrow(skeleton_terms)) {
+    return(empty_final)
+  }
+
+  base_keys <- skeleton_terms |>
+    dplyr::select(Quarter, Side, Product, Maturity, Type, product_order, maturity_order)
+
+  components <- list(
+    get_component(function() pb_comp_rate_core(res, q = "all"), "rate", NULL, q_sel),
+    get_component(function() pb_comp_oper2_core(res), "oper", NULL, q_sel),
+    get_component(function() pb_comp_adv(res, q = "all"), "adv", NULL, q_sel),
+    get_component(function() pb_fee_income(res), "fee", "funding", q_sel),
+    get_component(function() pb_comp_dgs_premium(res), "dgs", "funding", q_sel),
+    get_component(function() pb_comp_rr(res), "rr", "funding", q_sel),
+    get_component(function() pb_asset_default_rates(res), "default", "asset", q_sel)
+  )
+
   combined <- dplyr::bind_rows(components)
   if (!nrow(combined)) {
-    return(empty_final)
+    long_all <- base_keys |>
+      dplyr::mutate(Component = NA_character_, Value = NA_real_)
+  } else {
+    combined <- combined |>
+      dplyr::mutate(
+        Side = canon_side(Side),
+        Product = canon_product(Product),
+        Maturity = norm_maturity(Maturity)
+      ) |>
+      dplyr::filter(Side %in% c("asset", "funding"), Quarter %in% pb_helper_chr(q_sel))
+
+    combined <- combined |>
+      dplyr::group_by(Quarter, Side, Product, Maturity, Component) |>
+      dplyr::summarise(Value = dedup_value(Value), .groups = "drop")
+
+    comb_all <- combined |> dplyr::filter(is.na(Maturity) | Maturity == "all")
+    comb_term <- combined |> dplyr::filter(!is.na(Maturity) & Maturity != "all")
+
+    all_components_from_All <- dplyr::distinct(comb_all, Component)
+
+    existing_term_rows <- comb_term |>
+      dplyr::distinct(Quarter, Side, Product, Maturity, Component)
+
+    fill_targets <- tidyr::crossing(skeleton_terms |> dplyr::select(Quarter, Side, Product, Maturity), all_components_from_All) |>
+      dplyr::anti_join(
+        existing_term_rows,
+        by = c("Quarter", "Side", "Product", "Maturity", "Component")
+      ) |>
+      dplyr::left_join(
+        comb_all |> dplyr::select(Quarter, Side, Product, Component, Value),
+        by = c("Quarter", "Side", "Product", "Component")
+      )
+
+    comb_all_keep <- comb_all |>
+      dplyr::anti_join(
+        comb_term |> dplyr::distinct(Quarter, Side, Product),
+        by = c("Quarter", "Side", "Product")
+      )
+
+    long_all <- dplyr::bind_rows(comb_term, fill_targets, comb_all_keep)
+
+    long_all <- base_keys |>
+      dplyr::left_join(long_all, by = c("Quarter", "Side", "Product", "Maturity"))
   }
-  
-  combined <- combined |>
-    dplyr::mutate(
-      Side = canon_side(Side),
-      Product = canon_product(Product),
-      Maturity = norm_maturity(Maturity)
-    ) |>
-    dplyr::filter(Side %in% c("asset", "funding"))
-  
-  if (identical(side_key, "asset")) {
-    combined <- dplyr::filter(combined, Side == "asset")
-  } else if (identical(side_key, "funding")) {
-    combined <- dplyr::filter(combined, Side == "funding")
-  }
-  
-  if (!nrow(combined)) {
-    return(empty_final)
-  }
-  
-  combined <- combined |>
-    dplyr::group_by(Quarter, Side, Product, Maturity, Component) |>
-    dplyr::summarise(Value = dedup_value(Value), .groups = "drop")
-  
-  # --- Expand product-level "All" rows onto term grid; then drop "All" ---
-  # Use term-bearing components to define the maturity grid; fallback to all keys.
-  skeleton <- combined %>%
-    dplyr::filter(Component %in% c("rate","rr")) %>%
-    dplyr::distinct(Quarter, Side, Product, Maturity)
-  if (!nrow(skeleton)) {
-    skeleton <- combined %>% dplyr::distinct(Quarter, Side, Product, Maturity)
-  }
-  
-  comb_all  <- combined %>% dplyr::filter(is.na(Maturity) | Maturity == "all")
-  comb_term <- combined %>% dplyr::filter(!is.na(Maturity) & Maturity != "all")
-  
-  all_components <- unique(comb_all$Component)
-  
-  existing <- comb_term %>%
-    dplyr::distinct(Quarter, Side, Product, Maturity, Component)
-  
-  fill_targets <- skeleton %>%
-    tidyr::crossing(Component = all_components) %>%
-    dplyr::anti_join(existing, by = c("Quarter","Side","Product","Maturity","Component")) %>%
+
+  wide <- tidyr::pivot_wider(long_all, names_from = Component, values_from = Value)
+
+  wide <- base_keys |>
     dplyr::left_join(
-      comb_all %>% dplyr::select(Quarter, Side, Product, Component, Value),
-      by = c("Quarter","Side","Product","Component")
+      wide,
+      by = c(
+        "Quarter", "Side", "Product", "Maturity",
+        "Type", "product_order", "maturity_order"
+      )
     )
-  
-  combined <- dplyr::bind_rows(comb_term, fill_targets) %>%
-    dplyr::filter(!is.na(Maturity) & Maturity != "all")
-  
-  wide <- tidyr::pivot_wider(combined, names_from = Component, values_from = Value)
-  
+
   if (nrow(wide) > 0 && any(duplicated(wide[c("Quarter", "Side", "Product", "Maturity")]))) {
     stop("Deduplikeringsfejl: duplikerede nøgler i oversigten", call. = FALSE)
   }
-  
+
   for (nm in c("rate", "oper", "adv", "fee", "dgs", "rr", "default")) {
     if (!nm %in% names(wide)) {
       wide[[nm]] <- NA_real_
     }
   }
-  
+
   wide <- wide |>
     dplyr::mutate(
       rate = as.numeric(rate),
@@ -271,9 +339,10 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
       fee = as.numeric(fee),
       dgs = as.numeric(dgs),
       rr = as.numeric(rr),
-      default = as.numeric(default),
-      Type = dplyr::if_else(Side == "asset", "Assets", "Funding")
+      default = as.numeric(default)
     ) |>
+    dplyr::mutate(rr = dplyr::if_else(!is.na(rr) & rr > 1, rr / 100, rr)) |>
+    dplyr::mutate(Type = dplyr::if_else(Side == "asset", "Assets", "Funding")) |>
     dplyr::mutate(
       Total = dplyr::if_else(
         Side == "funding",
@@ -298,7 +367,7 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
         TRUE ~ Total / (1 - rr_eff)
       )
     )
-  
+
   result <- wide |>
     dplyr::transmute(
       Quarter,
@@ -314,29 +383,45 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
       `RR (%)` = rr,
       Default = default,
       `NetRet Assets` = NetReturnAssets,
-      `TotalCost Funds` = TotalCostFunds
+      `TotalCost Funds` = TotalCostFunds,
+      product_order,
+      maturity_order
     )
-  
+
   if (!nrow(result)) {
     return(empty_final)
   }
-  
-  metric_cols <- c(
-    "Nom Rate", "Oper Cost", "Adv", "Fee", "DGS", "Total", "RR (%)",
-    "Default", "NetRet Assets", "TotalCost Funds"
-  )
-  
-  result <- dplyr::filter(result, dplyr::if_any(dplyr::all_of(metric_cols), ~ !is.na(.x)))
-  if (!nrow(result)) {
-    return(empty_final)
-  }
-  
+
   if (isTRUE(as_percent)) {
-    pct_cols <- intersect(metric_cols, names(result))
-    result <- dplyr::mutate(result, dplyr::across(dplyr::all_of(pct_cols), ~ .x * 100))
+    pct_cols <- c(
+      "Nom Rate", "Oper Cost", "Adv", "Fee", "DGS", "Total",
+      "RR (%)", "Default", "NetRet Assets", "TotalCost Funds"
+    )
+    pct_cols <- intersect(pct_cols, names(result))
+    if (length(pct_cols)) {
+      result <- dplyr::mutate(result, dplyr::across(dplyr::all_of(pct_cols), ~ .x * 100))
+    }
   }
-  
-  result <- dplyr::arrange(result, Quarter, Type, objekt, maturity)
+
+  result <- result |>
+    dplyr::arrange(Quarter, Type, product_order, maturity_order) |>
+    dplyr::select(
+      Quarter,
+      Type,
+      objekt,
+      maturity,
+      `Nom Rate`,
+      `Oper Cost`,
+      Adv,
+      Fee,
+      DGS,
+      Total,
+      `RR (%)`,
+      Default,
+      `NetRet Assets`,
+      `TotalCost Funds`
+    )
+
   tibble::as_tibble(result)
 }
 
