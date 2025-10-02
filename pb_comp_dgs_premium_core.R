@@ -91,8 +91,7 @@ pb_comp_dgs_premium <- function(res, q = "latest", entity = NULL) {
     "Corporate Demand Deposits",
     "Savings Deposits",
     "Savings Certificates (CDs)",
-    "Long-term Time Deposits",
-    "Wholesale Deposits"
+    "Long-term Time Deposits"
   )
   insured_norm <- pb_helper_norm(insured_items)
   
@@ -113,9 +112,21 @@ pb_comp_dgs_premium <- function(res, q = "latest", entity = NULL) {
   dep_detail <- dep_rows |>
     dplyr::group_by(.data$Quarter, .data$Product) |>
     dplyr::summarise(insured_balance = sum(.data$Value, na.rm = TRUE), .groups = "drop")
-  insured_base <- dep_detail |>
+  # average by product over adjacent quarters
+  dep_avg_by_prod <- dep_detail |>
+    dplyr::group_by(.data$Product) |>
+    dplyr::arrange(.data$Product, .data$Quarter) |>
+    dplyr::mutate(insured_balance_lag = dplyr::lag(.data$insured_balance)) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(insured_balance_avg = dplyr::if_else(
+      is.finite(.data$insured_balance_lag),
+      0.5 * (.data$insured_balance + .data$insured_balance_lag),
+      .data$insured_balance # fallback for first observed quarter
+    ))
+  
+  insured_base <- dep_avg_by_prod |>
     dplyr::group_by(.data$Quarter) |>
-    dplyr::summarise(insured_base = sum(.data$insured_balance, na.rm = TRUE), .groups = "drop")
+    dplyr::summarise(insured_base = sum(.data$insured_balance_avg, na.rm = TRUE), .groups = "drop")
   
   env_section <- pb_helper_norm("ECONOMIC ENVIRONMENT REPORT")
   env_item_prefix <- pb_helper_norm("Annualized DGS Premium")
@@ -140,10 +151,10 @@ pb_comp_dgs_premium <- function(res, q = "latest", entity = NULL) {
     100L,        "funding", "Interbank borrowing",        "No-Maturity", FALSE,
     101L,        "funding", "Retail Demand Deposits",     "No-Maturity", TRUE,
     102L,        "funding", "Corporate Demand Deposits",  "No-Maturity", TRUE,
-    103L,        "funding", "Wholesale Deposits",         "1-quarter",   TRUE,
-    104L,        "funding", "Wholesale Deposits",         "2-quarter",   TRUE,
-    105L,        "funding", "Wholesale Deposits",         "3-quarter",   TRUE,
-    106L,        "funding", "Wholesale Deposits",         "4-quarter",   TRUE,
+    103L,        "funding", "Wholesale Deposits",         "1-quarter",   FALSE,
+    104L,        "funding", "Wholesale Deposits",         "2-quarter",   FALSE,
+    105L,        "funding", "Wholesale Deposits",         "3-quarter",   FALSE,
+    106L,        "funding", "Wholesale Deposits",         "4-quarter",   FALSE,
     107L,        "funding", "Savings Deposits",           "No-Maturity", TRUE,
     108L,        "funding", "Savings Certificates (CDs)", "1-quarter",   TRUE,
     109L,        "funding", "Savings Certificates (CDs)", "2-quarter",   TRUE,
@@ -189,16 +200,19 @@ pb_comp_dgs_premium <- function(res, q = "latest", entity = NULL) {
   all_specs <- dplyr::bind_rows(asset_specs, funding_specs)
   
   rate_tbl <- dplyr::left_join(dgs_expense, insured_base, by = "Quarter") |>
+    dplyr::left_join(env_rate, by = "Quarter") |>
     dplyr::mutate(
-      dgs_rate = dplyr::if_else(
+      # env_rate is assumed annualized percent; convert to decimal
+      env_rate_dec = ifelse(is.finite(.data$env_rate), .data$env_rate / 100, NA_real_),
+      implied_rate = dplyr::if_else(
         is.finite(.data$insured_base) & .data$insured_base > 0,
         (.data$dgs_expense / .data$insured_base) * 4,
-        as.numeric(NA)
+        NA_real_
       ),
+      dgs_rate = dplyr::coalesce(.data$env_rate_dec, .data$implied_rate),
       zero_base = !(is.finite(.data$insured_base) & .data$insured_base > 0)
     ) |>
-    dplyr::right_join(tibble::tibble(Quarter = quarters), by = "Quarter") |>
-    dplyr::left_join(env_rate, by = "Quarter")
+    dplyr::right_join(tibble::tibble(Quarter = quarters), by = "Quarter")
   
   spec_map <- dplyr::mutate(all_specs, spec_index = dplyr::row_number())
   grid <- tidyr::expand_grid(Quarter = quarters, spec_index = spec_map$spec_index) |>
@@ -277,15 +291,7 @@ pb_comp_dgs_premium <- function(res, q = "latest", entity = NULL) {
   }
   
   if (nrow(dep_detail)) {
-    included_quarters <- sort(unique(dep_detail$Quarter[dep_detail$Product == "Wholesale Deposits"]))
-    if (length(included_quarters)) {
-      notes <- c(notes, sprintf(
-        "Wholesale Deposits included in insured base for quarter(s): %s.",
-        paste(included_quarters, collapse = ", ")
-      ))
-    } else {
-      notes <- c(notes, "Wholesale Deposits not found in insured base for analysed quarters.")
-    }
+    notes <- c(notes, "Wholesale Deposits excluded from insured base by design.")
     
     missing_by_q <- lapply(split(dep_detail$Product, dep_detail$Quarter), function(products) {
       setdiff(insured_items, unique(products))

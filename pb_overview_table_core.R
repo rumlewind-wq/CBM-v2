@@ -12,6 +12,13 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
     stop("Parameteren 'side' skal være 'both', 'asset' eller 'funding'.", call. = FALSE)
   }
   
+  # --- Resolve selected quarter; enforce single-quarter view ---
+  quarters_all <- pb_quarters(res)
+  q_sel_vec <- pb_helper_select_quarters(quarters_all, q, context = sprintf("%s: kvartalsvalg", context))
+  if (!length(q_sel_vec)) stop("Kvartalet findes ikke i data.", call. = FALSE)
+  # If multiple returned (e.g., "all"), restrict to latest to avoid cartesian joins in overview
+  q_sel <- tail(q_sel_vec, 1)
+  
   empty_component <- pb_helper_empty_result()
   empty_final <- tibble::tibble(
     Quarter = character(),
@@ -77,9 +84,9 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
     "interbank borrowing" = "Interbank Borrowing",
     "discount window advances" = "Discount Window Advances",
     "discount window advance" = "Discount Window Advances",
-    "business loans - floating-rate" = "Business Loans - Floating-Rate",
-    "business loans - fixed-rate" = "Business Loans - Fixed-Rate",
-    "savings certificates (cds)" = "Savings Certificates (CDs)"
+    "business loans - floating-rate" = "Floating-Rate Corporate Loans",
+    "business loans - fixed-rate"    = "Fixed-Rate Corporate Loans",
+    "savings certificates (cds)"     = "Savings Certificates (CDs)"
   )
   
   canon_product <- function(x) {
@@ -142,7 +149,7 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
     sel
   }
   
-  get_component <- function(fetch, component, side_filter = NULL) {
+  get_component <- function(fetch, component, side_filter = NULL, q_sel = NULL) {
     tbl <- tryCatch(fetch(), error = function(e) NULL)
     if (is.null(tbl) || !nrow(tbl)) {
       return(empty_component)
@@ -159,6 +166,10 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
       Component = component,
       Value = parse_value(tbl$Value)
     )
+    # Enforce quarter filter because some helpers ignore `q` and return all quarters
+    if (!is.null(q_sel)) {
+      out <- dplyr::filter(out, Quarter %in% pb_helper_chr(q_sel))
+    }
     if (!is.null(side_filter)) {
       out <- dplyr::filter(out, canon_side(Side) %in% side_filter)
     }
@@ -169,13 +180,20 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
   }
   
   components <- list(
-    get_component(function() pb_comp_rate(res, q), "rate", NULL),
-    get_component(function() pb_comp_oper2(res), "oper", NULL),
-    get_component(function() pb_comp_adv_yaml(res), "adv", NULL),
-    get_component(function() pb_fee_income(res), "fee", "funding"),
-    get_component(function() pb_comp_dgs_premium(res), "dgs", "funding"),
-    get_component(function() pb_comp_rr(res), "rr", "funding"),
-    get_component(function() pb_asset_default_rates(res), "default", "asset")
+    # rate accepts q
+    get_component(function() pb_comp_rate(res, q = q_sel), "rate", NULL, q_sel),
+    # oper often returns all quarters → post-filter via get_component(q_sel=…)
+    get_component(function() pb_comp_oper2(res), "oper", NULL, q_sel),
+    # adv often returns all quarters → post-filter
+    get_component(function() pb_comp_adv_yaml(res), "adv", NULL, q_sel),
+    # fee often returns all quarters → post-filter; only funding side matters
+    get_component(function() pb_fee_income(res), "fee", "funding", q_sel),
+    # dgs accepts q
+    get_component(function() pb_comp_dgs_premium(res, q = q_sel), "dgs", "funding", q_sel),
+    # rr accepts q
+    get_component(function() pb_comp_rr(res, q = q_sel), "rr", "funding", q_sel),
+    # default accepts q
+    get_component(function() pb_asset_default_rates(res, q = q_sel), "default", "asset", q_sel)
   )
   
   combined <- dplyr::bind_rows(components)
@@ -204,6 +222,34 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
   combined <- combined |>
     dplyr::group_by(Quarter, Side, Product, Maturity, Component) |>
     dplyr::summarise(Value = dedup_value(Value), .groups = "drop")
+  
+  # --- Expand product-level "All" rows onto term grid; then drop "All" ---
+  # Use term-bearing components to define the maturity grid; fallback to all keys.
+  skeleton <- combined %>%
+    dplyr::filter(Component %in% c("rate","rr")) %>%
+    dplyr::distinct(Quarter, Side, Product, Maturity)
+  if (!nrow(skeleton)) {
+    skeleton <- combined %>% dplyr::distinct(Quarter, Side, Product, Maturity)
+  }
+  
+  comb_all  <- combined %>% dplyr::filter(is.na(Maturity) | Maturity == "all")
+  comb_term <- combined %>% dplyr::filter(!is.na(Maturity) & Maturity != "all")
+  
+  all_components <- unique(comb_all$Component)
+  
+  existing <- comb_term %>%
+    dplyr::distinct(Quarter, Side, Product, Maturity, Component)
+  
+  fill_targets <- skeleton %>%
+    tidyr::crossing(Component = all_components) %>%
+    dplyr::anti_join(existing, by = c("Quarter","Side","Product","Maturity","Component")) %>%
+    dplyr::left_join(
+      comb_all %>% dplyr::select(Quarter, Side, Product, Component, Value),
+      by = c("Quarter","Side","Product","Component")
+    )
+  
+  combined <- dplyr::bind_rows(comb_term, fill_targets) %>%
+    dplyr::filter(!is.na(Maturity) & Maturity != "all")
   
   wide <- tidyr::pivot_wider(combined, names_from = Component, values_from = Value)
   

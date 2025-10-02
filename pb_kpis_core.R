@@ -4,9 +4,13 @@
 #' @param q Kvartal ("latest" vælger seneste tilgængelige)
 #' @param unit Outputenhed ("decimal" eller "percent")
 #'
+#' @param level Vælg "bank" for bankens egne data eller "market" for markeds-
+#'   gennemsnit.
 #' @return Tibble med kolonnerne Quarter, FundingLoanRatio, LoanDepositRatio,
 #'   NetInterestMargin, ROE og ROA
-pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent")) {
+pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent"), level = c("bank", "market")) {
+  # Default level = "bank"; set level="market" to compute Market Average KPIs in competitive mode.
+  level <- match.arg(level)
   context <- "pb_kpis"
   unit <- match.arg(unit)
   
@@ -25,8 +29,14 @@ pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent")) {
   has_subsection <- "__subsection" %in% names(data)
   has_group <- "__group" %in% names(data)
   
-  section_balance <- pb_helper_norm("Market Average Balance Sheet")
   section_income <- pb_helper_norm("Income and Expense Report")
+  
+  # bank-level balance sheet labels vary; accept both canonical forms
+  bank_balance_raw <- c("SUMMARY BALANCE SHEET", "Summary Balance Sheet")
+  bank_balance_candidates <- pb_helper_norm(bank_balance_raw)
+  market_balance_label <- pb_helper_norm("Market Average Balance Sheet")
+  
+  section_balance <- if (level == "bank") bank_balance_candidates else market_balance_label
   
   data_norm <- data %>%
     dplyr::mutate(
@@ -40,11 +50,23 @@ pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent")) {
     ) %>%
     dplyr::filter(!stringr::str_detect(.data$Item_raw, "(?i)\\(rate\\)"))
   
-  balance_data <- dplyr::filter(data_norm, .data$section_norm == section_balance)
+  balance_data <- if (level == "bank") {
+    dplyr::filter(data_norm, .data$section_norm %in% section_balance)
+  } else {
+    dplyr::filter(data_norm, .data$section_norm == section_balance)
+  }
   income_data <- dplyr::filter(data_norm, .data$section_norm == section_income)
   
   if (!nrow(balance_data)) {
-    stop("Balancerapporten 'Market Average Balance Sheet' blev ikke fundet i data.", call. = FALSE)
+    balance_label <- if (level == "bank") {
+      paste(sprintf("'%s'", bank_balance_raw), collapse = " eller ")
+    } else {
+      "'Market Average Balance Sheet'"
+    }
+    stop(
+      sprintf("Balancerapporten %s blev ikke fundet i data.", balance_label),
+      call. = FALSE
+    )
   }
   if (!nrow(income_data)) {
     stop("Resultatopgørelsen 'Income and Expense Report' blev ikke fundet i data.", call. = FALSE)
@@ -127,7 +149,7 @@ pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent")) {
   )
   matcher_mortgage <- build_matcher(
     exact = c("Mortgages", "Mortgage Loans"),
-    prefix = "Mortgage Loans, maturing start of:"
+    prefix = c("Mortgage Loans, maturing start of:")
   )
   matcher_lla <- build_matcher(exact = "Loan Loss Allowance")
   
@@ -135,22 +157,36 @@ pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent")) {
   matcher_corp_dd <- build_matcher(exact = "Corporate Demand Deposits")
   matcher_savings <- build_matcher(exact = "Savings Deposits")
   matcher_cds <- build_matcher(
-    exact = "Savings Certificates (CDs)",
-    prefix = "Savings Certificates (CDs), maturing start of:"
+    exact = c("Savings Certificates (CDs)", "Retail CDs"),
+    prefix = c(
+      "Savings Certificates (CDs), maturing start of:",
+      "Retail CDs, maturing start of:"
+    )
   )
   matcher_long_term <- build_matcher(
     exact = "Long-term Time Deposits",
     prefix = "Long-term Time Deposits, maturing start of:"
   )
   matcher_wholesale <- build_matcher(
-    exact = "Wholesale Deposits",
-    prefix = "Wholesale Deposits, maturing start of:"
+    exact = c("Wholesale Deposits", "Negotiable CDs", "Wholesale CDs", "Purchased Funds"),
+    prefix = c(
+      "Wholesale Deposits, maturing start of:",
+      "Negotiable CDs, maturing start of:",
+      "Wholesale CDs, maturing start of:",
+      "Purchased Funds, maturing start of:"
+    )
   )
-  matcher_interbank <- build_matcher(exact = "Interbank Borrowing")
-  matcher_discount <- build_matcher(exact = "Discount Window Advances")
+  matcher_interbank <- build_matcher(
+    exact = c("Interbank Borrowing", "Interbank Funds Purchased"),
+    prefix = c("Interbank Borrowing", "Interbank Funds Purchased")
+  )
+  matcher_discount <- build_matcher(
+    exact = c("Discount Window Advances", "Discount window advance"),
+    regex = "(?i)^discount window"
+  )
   
-  matcher_total_assets <- build_matcher(exact = "TOTAL ASSETS")
-  matcher_equity <- build_matcher(exact = "Net Worth and Retained Earnings")
+  matcher_total_assets <- build_matcher(exact = c("TOTAL ASSETS", "Total Assets"))
+  matcher_equity <- build_matcher(exact = c("Net Worth and Retained Earnings", "Net Worth"))
   
   matcher_interest_income <- list(
     build_matcher(exact = "Business Loans - Fixed-Rate"),
@@ -195,7 +231,7 @@ pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent")) {
   deposits_cds <- pull_value(balance_use, q_sel, matcher_cds, "Savings Certificates (CDs)", default = 0, required = FALSE)
   deposits_long_term <- pull_value(balance_use, q_sel, matcher_long_term, "Long-term Time Deposits", default = 0, required = FALSE)
   
-  wholesale_funding <- pull_value(balance_use, q_sel, matcher_wholesale, "Wholesale Deposits", default = 0, required = FALSE)
+  wholesale_funding <- pull_value(balance_use, q_sel, matcher_wholesale, "Wholesale funding", default = 0, required = FALSE)
   interbank_funding <- pull_value(balance_use, q_sel, matcher_interbank, "Interbank Borrowing", default = 0, required = FALSE)
   discount_window <- pull_value(balance_use, q_sel, matcher_discount, "Discount Window Advances", default = 0, required = FALSE)
   
@@ -220,7 +256,8 @@ pb_kpis <- function(res, q = "latest", unit = c("decimal", "percent")) {
   loans_sum <- loans_fixed + loans_float + loans_consumer + loans_mortgage
   loans_net <- loans_sum - loan_loss_allowance
   deposits_core <- deposits_retail + deposits_corp + deposits_savings + deposits_cds + deposits_long_term
-  funding_total <- deposits_core + wholesale_funding + interbank_funding + discount_window
+  # FundingLoanRatio denominator: deposits + wholesale ONLY
+  funding_total <- deposits_core + wholesale_funding
   
   avg_assets <- if (!is.na(total_assets_prev) && !is.na(total_assets_curr)) {
     mean(c(total_assets_curr, total_assets_prev), na.rm = TRUE)
