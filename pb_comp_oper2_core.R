@@ -232,8 +232,41 @@ pb_comp_oper2_core <- function(res, entity = NULL) {
   ib_calc <- dplyr::bind_rows(ib_calc)
   
   full_calc <- dplyr::bind_rows(non_ib_calc, ib_calc)
-  
-  grid <- tidyr::expand_grid(Quarter = quarter_levels, product_spec[, c("Product", "Side", "Maturity")]) |>
+
+  seq_quarter_labels <- function(n) {
+    paste0(seq_len(n), "-quarter")
+  }
+
+  make_display_block <- function(product, side, maturities) {
+    tibble::tibble(Side = side, Product = product, Maturity = maturities)
+  }
+
+  asset_display <- dplyr::bind_rows(
+    make_display_block("Consumer Loans", "asset", seq_quarter_labels(4)),
+    make_display_block("Fixed-rate Corporate Loans", "asset", "1-quarter"),
+    make_display_block("Floating-rate Corporate Loans", "asset", seq_quarter_labels(2)),
+    make_display_block("Government Bonds", "asset", seq_quarter_labels(8)),
+    make_display_block("Interbank lending", "asset", "1-quarter"),
+    make_display_block("Mortgage Loans", "asset", seq_quarter_labels(8))
+  )
+
+  funding_display <- dplyr::bind_rows(
+    make_display_block("Interbank borrowing", "funding", "1-quarter"),
+    make_display_block("Retail Demand Deposits", "funding", "No-Maturity"),
+    make_display_block("Corporate Demand Deposits", "funding", "No-Maturity"),
+    make_display_block("Savings Deposits", "funding", "No-Maturity"),
+    make_display_block("Savings Certificates (CDs)", "funding", seq_quarter_labels(2)),
+    make_display_block("Long-term Time Deposits", "funding", seq_quarter_labels(8)),
+    make_display_block("Wholesale Deposits", "funding", seq_quarter_labels(4)),
+    make_display_block("Discount Window Advances", "funding", "No-Maturity")
+  )
+
+  display_spec <- dplyr::bind_rows(asset_display, funding_display)
+
+  grid <- tidyr::expand_grid(
+    Quarter = quarter_levels,
+    display_spec
+  ) |>
     dplyr::left_join(full_calc, by = c("Quarter", "Product", "Side", "Maturity")) |>
     dplyr::mutate(
       Component = "oper",
