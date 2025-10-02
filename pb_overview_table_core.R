@@ -254,9 +254,10 @@ pb_overview_table_core <- function(res, side = "both", q = "latest", as_percent 
     dplyr::select(Quarter, Side, Product, Maturity, Type, product_order, maturity_order)
 
   components <- list(
-    get_component(function() pb_comp_rate(res, q = "all"), "rate", NULL, q_sel),
-    get_component(function() pb_comp_oper2(res), "oper", NULL, q_sel),
-    get_component(function() pb_comp_adv_yaml(res), "adv", NULL, q_sel),
+
+    get_component(function() pb_comp_rate_core(res, q = "all"), "rate", NULL, q_sel),
+    get_component(function() pb_comp_oper2_core(res), "oper", NULL, q_sel),
+    get_component(function() pb_comp_adv(res, q = "all"), "adv", NULL, q_sel),
     get_component(function() pb_fee_income(res), "fee", "funding", q_sel),
     get_component(function() pb_comp_dgs_premium(res), "dgs", "funding", q_sel),
     get_component(function() pb_comp_rr(res), "rr", "funding", q_sel),
